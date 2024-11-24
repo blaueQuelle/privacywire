@@ -51,7 +51,6 @@ class PrivacyWire extends WireData implements Module, ConfigurableModule
         }
 
         // 1. - 5. within initiatePrivacyWire method
-        $this->wire('page')->addHookBefore('render', $this, 'initiatePrivacyWire');
 
         // 6. Render everything!
         /*
@@ -59,6 +58,7 @@ class PrivacyWire extends WireData implements Module, ConfigurableModule
          * The banner markup and consent window blueprint can be loaded anywhere, for example at the end of the body tag.
          */
         if (!$this->render_manually) {
+            $this->wire('page')->addHookBefore('render', $this, 'initiatePrivacyWire'); // also disabled : allows full manual execution, more reliable as fully executed exactly once
             $this->wire('page')->addHookAfter('render', $this, 'render', ['priority' => 101]);
         }
     }
@@ -190,7 +190,7 @@ class PrivacyWire extends WireData implements Module, ConfigurableModule
         $privacyWireSettings->dnt = ($this->respectDNT) ? "1" : "0";
         $privacyWireSettings->bots = ($this->checkForBots) ? "1" : "0";
         $privacyWireSettings->customFunction = ($this->wire('sanitizer')->text($this->trigger_custom_js_function)) ?? "";
-        $privacyWireSettings->messageTimeout = ($this->messageTimeout && intval($this->messageTimeout) > 1) ? intval($this->messageTimeout) : 1500;
+        $privacyWireSettings->messageTimeout = (isset($this->messageTimeout) && intval($this->messageTimeout) >= 0) ? intval($this->messageTimeout) : 1500;
         $privacyWireSettings->consentByClass = ($this->detect_consents_by_class) ? "1" : "0";
         $privacyWireSettings->cookieGroups = [
             'necessary' => $this->get("cookies_necessary_label{$this->lang}|cookies_necessary_label"),

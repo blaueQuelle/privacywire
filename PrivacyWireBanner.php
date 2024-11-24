@@ -11,12 +11,14 @@ $showStatisticsButton = (in_array("statistics", $module->cookie_groups));
 $showMarketingButton = (in_array("marketing", $module->cookie_groups));
 $showExternalMediaButton = (in_array("external_media", $module->cookie_groups));
 
+// show the "choose" button if there is MORE than 1 optional cookie types to choose from
+// (if there's only 1 optional cookie type, then the button "necessary yes/no" is enough to cover all possible choices)
 $showChooseButton = (
-    $showFunctionalButton ||
-    $showStatisticsButton ||
-    $showMarketingButton ||
-    $showExternalMediaButton
-);
+    (int)$showFunctionalButton +
+    (int)$showStatisticsButton +
+    (int)$showMarketingButton +
+    (int)$showExternalMediaButton
+) > 1;
 
 
 // Detailed Text for options banner 

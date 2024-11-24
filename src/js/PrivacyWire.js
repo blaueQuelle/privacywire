@@ -311,10 +311,12 @@ class PrivacyWire {
     }
 
     showMessage() {
-        this.elements.banner.wrapper.classList.add("show-message")
-        setTimeout(() => {
-            this.elements.banner.wrapper.classList.remove("show-message")
-        }, this.settings.messageTimeout)
+        if (this.settings.messageTimeout > 0) {
+            this.elements.banner.wrapper.classList.add("show-message")
+            setTimeout(() => {
+                this.elements.banner.wrapper.classList.remove("show-message")
+            }, this.settings.messageTimeout)
+        }
     }
 
     checkElementsWithRequiredConsent() {
