@@ -384,6 +384,12 @@ class PrivacyWire {
             category: categoryLabel,
             categoryname: category
         })
+        if (dataset.askConsentMessage) {
+          newEl.querySelector('.privacywire-consent-message').textContent = dataset.askConsentMessage;
+        }
+        if (dataset.askConsentButtonLabel) {
+          newEl.querySelector('button').textContent = dataset.askConsentButtonLabel;
+        }
         el.insertAdjacentElement('afterend', newEl)
         el.dataset.askConsentRendered = "1"
     }
@@ -421,9 +427,13 @@ class PrivacyWire {
 
     updateAllowedElementOther(el) {
         const {dataset} = el
-        el.type = dataset.type ?? 'text/javascript'
-        el.src = dataset.src
-        el.srcset = dataset.srcset
+        el.type = dataset.type ?? 'text/javascript';
+
+        ['src', 'srcset', 'srcdoc'].forEach(k => {
+          if (dataset[k] !== undefined) {
+            el[k] = dataset[k]
+          }
+        })
         this.removeUnusedAttributesFromElement(el)
     }
 
@@ -433,6 +443,7 @@ class PrivacyWire {
         el.removeAttribute("data-category")
         el.removeAttribute("data-src")
         el.removeAttribute("data-srcset")
+        el.removeAttribute("data-srcdoc")
         el.removeAttribute("data-type")
         el.classList.remove("require-consent")
         return el
