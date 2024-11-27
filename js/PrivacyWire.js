@@ -1,1 +1,482 @@
-!function(){"use strict";String.prototype.formatUnicorn=String.prototype.formatUnicorn||function(){var e=this.toString();if(arguments.length){var t,s=typeof arguments[0],n="string"===s||"number"===s?Array.prototype.slice.call(arguments):arguments[0];for(t in n)e=e.replace(new RegExp("\\{"+t+"\\}","gi"),n[t])}return e};class PrivacyWire{constructor(e){this.name="privacywire",this.toggleToStatus=!0,this.cookieGroups=Object.freeze(["necessary","functional","statistics","marketing","external_media"]),this.settings=this.sanitizeSettings(e),this.userConsent=this.sanitizeStoredConsent(),this.elements=this.initiateElements(),this.syncConsentToCheckboxes(),this.checkForValidConsent()||this.showBanner(),this.checkElementsWithRequiredConsent(),this.handleButtons()}sanitizeSettings(e){let t={};t.version=parseInt(e.version),t.dnt=Boolean(parseInt(e.dnt)),t.bots=Boolean(parseInt(e.bots)),t.customFunction=`${e.customFunction}`,t.messageTimeout=parseInt(e.messageTimeout),t.consentByClass=Boolean(parseInt(e.consentByClass)),t.cookieGroups={};for(const s of this.cookieGroups)t.cookieGroups[s]=`${e.cookieGroups[s]}`;return t}sanitizeStoredConsent(){if(!window.localStorage.getItem(this.name))return this.getDefaultConsent();const e=JSON.parse(window.localStorage.getItem(this.name));if(parseInt(e.version)!==this.settings.version)return this.getDefaultConsent();if(void 0===e.cookieGroups)return this.removeStoredConsent(),this.getDefaultConsent();let t={};t.version=parseInt(e.version),t.cookieGroups={};for(const s of this.cookieGroups)t.cookieGroups[s]=Boolean(e.cookieGroups[s]);return t}getDefaultConsent(){let e={version:0,cookieGroups:{}};for(const t of this.cookieGroups)e.cookieGroups[t]="necessary"===t;return e}initiateElements(){let e={banner:{}};e.banner.wrapper=document.getElementById("privacywire-wrapper"),e.banner.intro=e.banner.wrapper.getElementsByClassName("privacywire-banner"),e.banner.options=e.banner.wrapper.getElementsByClassName("privacywire-options"),e.banner.message=e.banner.wrapper.getElementsByClassName("privacywire-message"),e.buttons={},e.buttons.acceptAll=e.banner.wrapper.getElementsByClassName("allow-all"),e.buttons.acceptNecessary=e.banner.wrapper.getElementsByClassName("allow-necessary"),e.buttons.choose=e.banner.wrapper.getElementsByClassName("choose"),e.buttons.toggle=e.banner.wrapper.getElementsByClassName("toggle"),e.buttons.save=e.banner.wrapper.getElementsByClassName("save"),e.buttons.askForConsent=document.getElementsByClassName("privacywire-consent-button"),e.buttons.externalTrigger=document.getElementsByClassName("privacywire-show-options"),e.checkboxes={};for(const t of this.cookieGroups)"necessary"!==t&&(e.checkboxes[t]=document.getElementById(t));return e.blueprint=document.getElementById("privacywire-ask-consent-blueprint"),e.elementsWithRequiredConsent=!0===this.settings.consentByClass?document.getElementsByClassName("require-consent"):document.querySelectorAll("[data-category]"),e.consentWindows=document.getElementsByClassName("privacywire-ask-consent"),e}handleButtons(){this.handleButtonHelper(this.elements.buttons.acceptAll,"handleButtonAcceptAll"),this.handleButtonHelper(this.elements.buttons.acceptNecessary,"handleButtonAcceptNecessary"),this.handleButtonHelper(this.elements.buttons.choose,"handleButtonChoose"),this.handleButtonHelper(this.elements.buttons.toggle,"handleButtonToggle"),this.handleButtonHelper(this.elements.buttons.save,"handleButtonSave"),this.handleButtonHelper(this.elements.buttons.askForConsent,"handleButtonAskForConsent"),this.handleButtonHelper(this.elements.buttons.externalTrigger,"handleButtonExternalTrigger")}handleButtonHelper(e,t){if(e){const s=this;Array.from(e).forEach((e=>{s[t](e)}))}}reHandleExternalButtons(){this.elements.buttons.externalTrigger=document.getElementsByClassName("privacywire-show-options"),this.handleButtonHelper(this.elements.buttons.externalTrigger,"handleButtonExternalTrigger")}handleButtonAcceptAll(e){e.addEventListener("click",(()=>{for(const e of this.cookieGroups)this.userConsent.cookieGroups[e]=!0;this.syncConsentToCheckboxes(),this.saveConsent()}))}handleButtonAcceptNecessary(e){e.addEventListener("click",(()=>{this.userConsent=this.getDefaultConsent(),this.syncConsentToCheckboxes(),this.saveConsent()}))}handleButtonChoose(e){e.addEventListener("click",(()=>{this.showOptions()}))}handleButtonToggle(e){e.addEventListener("click",(()=>{for(const e in this.elements.checkboxes)this.elements.checkboxes[e].checked=this.toggleToStatus;this.toggleToStatus=!this.toggleToStatus}))}handleButtonSave(e){e.addEventListener("click",(()=>{for(const e of this.cookieGroups)"necessary"!==e&&(this.userConsent.cookieGroups[e]=this.elements.checkboxes[e].checked);this.saveConsent()}))}handleButtonAskForConsent(e){e.addEventListener("click",(()=>{const{dataset:t}=e;this.userConsent.cookieGroups[t.consentCategory]=!0,this.syncConsentToCheckboxes(),this.saveConsent(),e.parentElement.remove()}))}handleButtonExternalTrigger(e){e.addEventListener("click",(e=>{e.preventDefault(),this.showOptions()}))}syncConsentToCheckboxes(){for(const e of this.cookieGroups)"necessary"!==e&&(this.elements.checkboxes[e].checked=this.userConsent.cookieGroups[e])}checkForValidConsent(){return this.userConsent.version>0&&this.userConsent.version===this.settings.version||(this.settings.bots?this.checkForBots():this.settings.dnt&&!0===this.checkForUsersDNT())}checkForUsersDNT(){return!(!this.settings.dnt||"1"!==navigator.doNotTrack)&&(this.userConsent=this.getDefaultConsent(),this.saveConsent(!0),!0)}detectRobot(){return new RegExp([/bot/,/spider/,/crawl/,/APIs-Google/,/AdsBot/,/Googlebot/,/mediapartners/,/Google Favicon/,/Google Page Speed Insights/,/Chrome-Lighthouse/,/FeedFetcher/,/Google-Read-Aloud/,/DuplexWeb-Google/,/googleweblight/,/bing/,/yandex/,/baidu/,/duckduck/,/yahoo/,/ecosia/,/ia_archiver/,/facebook/,/instagram/,/pinterest/,/reddit/,/slack/,/twitter/,/whatsapp/,/youtube/,/semrush/].map((e=>e.source)).join("|"),"i").test(navigator.userAgent)}checkForBots(){return!!this.detectRobot()&&(this.userConsent=this.getDefaultConsent(),this.saveConsent(!0),!0)}saveConsent(e=!1){this.userConsent.version=this.settings.version,window.localStorage.removeItem(this.name),window.localStorage.setItem(this.name,JSON.stringify(this.userConsent)),this.hideBannerAndOptions(),e||this.showMessage(),this.checkElementsWithRequiredConsent(),this.triggerCustomFunction()}triggerCustomFunction(){this.settings.customFunction.length&&"function"==typeof window[this.settings.customFunction]&&window[this.settings.customFunction]()}hideBannerAndOptions(){this.elements.banner.wrapper.classList.remove("show-banner","show-options"),document.body.classList.remove("has-privacywire-window-opened"),document.dispatchEvent(new CustomEvent("PrivacyWireBannerAndOptionsClosed"))}showBanner(){this.elements.banner.wrapper.classList.add("show-banner"),document.body.classList.add("has-privacywire-window-opened"),document.dispatchEvent(new CustomEvent("PrivacyWireBannerOpened"))}showOptions(){this.elements.banner.wrapper.classList.remove("show-banner"),this.elements.banner.wrapper.classList.add("show-options"),document.body.classList.add("has-privacywire-window-opened"),document.dispatchEvent(new CustomEvent("PrivacyWireOptionsOpened"))}showMessage(){this.elements.banner.wrapper.classList.add("show-message"),setTimeout((()=>{this.elements.banner.wrapper.classList.remove("show-message")}),this.settings.messageTimeout)}checkElementsWithRequiredConsent(){if(!1===this.settings.consentByClass&&(this.elements.elementsWithRequiredConsent=document.querySelectorAll("[data-category]")),this.cleanOldConsentWindows(),this.elements.elementsWithRequiredConsent){const e=this;Array.from(this.elements.elementsWithRequiredConsent).forEach((function(t){const s=t.dataset.category;if(!s)return;let n=!1;for(const t in e.userConsent.cookieGroups)if(t===s&&!0===e.userConsent.cookieGroups[t]){n=!0;break}n?e.updateAllowedElement(t):e.updateDisallowedElement(t)}))}}cleanOldConsentWindows(){this.elements.consentWindows&&Array.from(this.elements.consentWindows).forEach((e=>{const{dataset:t}=e,s=t.disallowedConsentCategory;let n=!1;for(const e in this.userConsent.cookieGroups)if(e===s&&!0===this.userConsent.cookieGroups[e]){n=!0;break}n&&e.remove()}))}updateDisallowedElement(e){const{dataset:t}=e;if(!t.askConsent||"1"===t.askConsentRendered)return;const s=t.category,n=this.settings.cookieGroups[s];let o=document.createElement("div");o.classList.add("privacywire-ask-consent","consent-category-"+s),o.dataset.disallowedConsentCategory=s,o.innerHTML=this.elements.blueprint.innerHTML.formatUnicorn({category:n,categoryname:s}),e.insertAdjacentElement("afterend",o),e.dataset.askConsentRendered="1"}updateAllowedElement(e){"script"===e.tagName.toLowerCase()?this.updateAllowedElementScript(e):this.updateAllowedElementOther(e)}updateAllowedElementScript(e){const{dataset:t}=e;let s=document.createElement(e.tagName);for(const n of Object.keys(t))s.dataset[n]=e.dataset[n];s.type=t.type??"text/javascript",t.src&&(s.src=t.src),s.textContent=e.textContent,e.id&&(s.id=e.id),s.defer=e.defer,s.async=e.async,s=this.removeUnusedAttributesFromElement(s),e.insertAdjacentElement("afterend",s),e.remove()}updateAllowedElementOther(e){const{dataset:t}=e;e.type=t.type??"text/javascript",e.src=t.src,e.srcset=t.srcset,this.removeUnusedAttributesFromElement(e)}removeUnusedAttributesFromElement(e){return e.removeAttribute("data-ask-consent"),e.removeAttribute("data-ask-consent-rendered"),e.removeAttribute("data-category"),e.removeAttribute("data-src"),e.removeAttribute("data-srcset"),e.removeAttribute("data-type"),e.classList.remove("require-consent"),e}refresh(){this.checkElementsWithRequiredConsent(),this.handleButtonHelper(this.elements.buttons.askForConsent,"handleButtonAskForConsent")}removeStoredConsent(){window.localStorage.getItem(this.name)&&window.localStorage.removeItem(this.name)}}document.addEventListener("DOMContentLoaded",(function(){window.PrivacyWire=new PrivacyWire(PrivacyWireSettings)}))}();
+(function(){'use strict';// String formatter to output opt-in message of disabled elements
+// source: https://stackoverflow.com/a/18234317
+String.prototype.formatUnicorn = String.prototype.formatUnicorn ||
+    function () {
+        var str = this.toString();
+        if (arguments.length) {
+            var t = typeof arguments[0];
+            var key;
+            var args = ("string" === t || "number" === t) ?
+                Array.prototype.slice.call(arguments)
+                : arguments[0];
+
+            for (key in args) {
+                str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
+            }
+        }
+
+        return str;
+    };class PrivacyWire {
+    constructor(PrivacyWireSettings) {
+        this.name = "privacywire";
+        this.toggleToStatus = true;
+        this.cookieGroups = Object.freeze([
+            "necessary",
+            "functional",
+            "statistics",
+            "marketing",
+            "external_media"
+        ]);
+        this.settings = this.sanitizeSettings(PrivacyWireSettings);
+        this.userConsent = this.sanitizeStoredConsent();
+        this.elements = this.initiateElements();
+        this.syncConsentToCheckboxes();
+
+        if (!this.checkForValidConsent()) {
+            this.showBanner();
+        }
+        this.checkElementsWithRequiredConsent();
+        this.handleButtons();
+    }
+
+    /**
+     * Sanitize the inline script settings
+     * @param {Object} PrivacyWireSettings - The inline script settings container
+     * @returns {Object} Sanitized object with the settings
+     */
+    sanitizeSettings(PrivacyWireSettings) {
+        let settings = {};
+        settings.version = parseInt(PrivacyWireSettings.version);
+        settings.dnt = Boolean(parseInt(PrivacyWireSettings.dnt));
+        settings.bots = Boolean(parseInt(PrivacyWireSettings.bots));
+        settings.customFunction = `${PrivacyWireSettings.customFunction}`;
+        settings.messageTimeout = parseInt(PrivacyWireSettings.messageTimeout);
+        settings.consentByClass = Boolean(parseInt(PrivacyWireSettings.consentByClass));
+        settings.cookieGroups = {};
+
+        for (const key of this.cookieGroups) {
+            settings.cookieGroups[key] = `${PrivacyWireSettings.cookieGroups[key]}`;
+        }
+
+        return settings
+    }
+
+    /**
+     * Sanitize stored consent from LocalStorage
+     * @returns {Object} either empty object or sanitized stored consent object if version matches with settings version
+     */
+    sanitizeStoredConsent() {
+        if (!window.localStorage.getItem(this.name)) {
+            return this.getDefaultConsent()
+        }
+
+        const storedConsentRaw = JSON.parse(window.localStorage.getItem(this.name));
+        if (parseInt(storedConsentRaw.version) !== this.settings.version) {
+            return this.getDefaultConsent()
+        }
+
+        if (typeof storedConsentRaw.cookieGroups === 'undefined') {
+            this.removeStoredConsent();
+            return this.getDefaultConsent()
+        }
+
+        let storedConsent = {};
+        storedConsent.version = parseInt(storedConsentRaw.version);
+        storedConsent.cookieGroups = {};
+
+        for (const key of this.cookieGroups) {
+            storedConsent.cookieGroups[key] = Boolean(storedConsentRaw.cookieGroups[key]);
+        }
+
+        return storedConsent
+    }
+
+    /**
+     * Get default Consent object
+     * @returns {Object} Consent object with only necessary allowed
+     */
+    getDefaultConsent() {
+        let consent = {};
+        consent.version = 0;
+        consent.cookieGroups = {};
+        for (const key of this.cookieGroups) {
+            consent.cookieGroups[key] = (key === "necessary");
+        }
+        return consent
+    }
+
+    initiateElements() {
+        let elements = {};
+        elements.banner = {};
+        elements.banner.wrapper = document.getElementById("privacywire-wrapper");
+        elements.banner.intro = elements.banner.wrapper.getElementsByClassName("privacywire-banner");
+        elements.banner.options = elements.banner.wrapper.getElementsByClassName("privacywire-options");
+        elements.banner.message = elements.banner.wrapper.getElementsByClassName("privacywire-message");
+
+        elements.buttons = {};
+        elements.buttons.acceptAll = elements.banner.wrapper.getElementsByClassName("allow-all");
+        elements.buttons.acceptNecessary = elements.banner.wrapper.getElementsByClassName("allow-necessary");
+        elements.buttons.choose = elements.banner.wrapper.getElementsByClassName("choose");
+        elements.buttons.toggle = elements.banner.wrapper.getElementsByClassName("toggle");
+        elements.buttons.save = elements.banner.wrapper.getElementsByClassName("save");
+        elements.buttons.askForConsent = document.getElementsByClassName("privacywire-consent-button");
+        elements.buttons.externalTrigger = document.getElementsByClassName("privacywire-show-options");
+
+        elements.checkboxes = {};
+        for (const key of this.cookieGroups) {
+            if (key === "necessary") {
+                continue
+            }
+            elements.checkboxes[key] = document.getElementById(key);
+        }
+
+        elements.blueprint = document.getElementById("privacywire-ask-consent-blueprint");
+
+        elements.elementsWithRequiredConsent = (this.settings.consentByClass === true) ? document.getElementsByClassName("require-consent") : document.querySelectorAll("[data-category]");
+
+        elements.consentWindows = document.getElementsByClassName("privacywire-ask-consent");
+
+        return elements
+    }
+
+
+    handleButtons() {
+        this.handleButtonHelper(this.elements.buttons.acceptAll, "handleButtonAcceptAll");
+        this.handleButtonHelper(this.elements.buttons.acceptNecessary, "handleButtonAcceptNecessary");
+        this.handleButtonHelper(this.elements.buttons.choose, "handleButtonChoose");
+        this.handleButtonHelper(this.elements.buttons.toggle, "handleButtonToggle");
+        this.handleButtonHelper(this.elements.buttons.save, "handleButtonSave");
+        this.handleButtonHelper(this.elements.buttons.askForConsent, "handleButtonAskForConsent");
+        this.handleButtonHelper(this.elements.buttons.externalTrigger, "handleButtonExternalTrigger");
+    }
+
+    handleButtonHelper(buttons, method) {
+        if (buttons) {
+            const pw = this;
+            Array.from(buttons).forEach((btn) => {
+                pw[method](btn);
+            });
+        }
+    }
+
+    reHandleExternalButtons() {
+        this.elements.buttons.externalTrigger = document.getElementsByClassName("privacywire-show-options");
+        this.handleButtonHelper(this.elements.buttons.externalTrigger, "handleButtonExternalTrigger");
+    }
+
+    handleButtonAcceptAll(btn) {
+        btn.addEventListener("click", () => {
+            for (const key of this.cookieGroups) {
+                this.userConsent.cookieGroups[key] = true;
+            }
+            this.syncConsentToCheckboxes();
+            this.saveConsent();
+        });
+    }
+
+    handleButtonAcceptNecessary(btn) {
+        btn.addEventListener("click", () => {
+            this.userConsent = this.getDefaultConsent();
+            this.syncConsentToCheckboxes();
+            this.saveConsent();
+        });
+    }
+
+    handleButtonChoose(btn) {
+        btn.addEventListener("click", () => {
+            this.showOptions();
+        });
+    }
+
+    handleButtonToggle(btn) {
+        btn.addEventListener("click", () => {
+            for (const key in this.elements.checkboxes) {
+                this.elements.checkboxes[key].checked = this.toggleToStatus;
+            }
+            this.toggleToStatus = !this.toggleToStatus;
+        });
+    }
+
+    handleButtonSave(btn) {
+        btn.addEventListener("click", () => {
+            for (const key of this.cookieGroups) {
+                if (key === "necessary") {
+                    continue
+                }
+                this.userConsent.cookieGroups[key] = this.elements.checkboxes[key].checked;
+            }
+            this.saveConsent();
+        });
+    }
+
+    handleButtonAskForConsent(btn) {
+        btn.addEventListener("click", () => {
+            const {dataset} = btn;
+            this.userConsent.cookieGroups[dataset.consentCategory] = true;
+            this.syncConsentToCheckboxes();
+            this.saveConsent();
+            btn.parentElement.remove();
+        });
+    }
+
+    handleButtonExternalTrigger(btn) {
+        btn.addEventListener("click", (event) => {
+            event.preventDefault();
+            this.showOptions();
+        });
+    }
+
+    syncConsentToCheckboxes() {
+        for (const key of this.cookieGroups) {
+            if (key === "necessary") {
+                continue
+            }
+            this.elements.checkboxes[key].checked = this.userConsent.cookieGroups[key];
+        }
+    }
+
+    checkForValidConsent() {
+        if (this.userConsent.version > 0 && this.userConsent.version === this.settings.version) {
+            return true
+        }
+        if (this.settings.bots) {
+            return this.checkForBots();
+        }
+
+        return this.settings.dnt && this.checkForUsersDNT() === true
+
+    }
+
+    checkForUsersDNT() {
+        if (this.settings.dnt && navigator.doNotTrack === "1") {
+            this.userConsent = this.getDefaultConsent();
+            this.saveConsent(true);
+
+            return true
+        }
+        return false
+    }
+
+    detectRobot() {
+
+        const robots = new RegExp([
+            /bot/, /spider/, /crawl/,                            // GENERAL TERMS
+            /APIs-Google/, /AdsBot/, /Googlebot/,                // GOOGLE ROBOTS
+            /mediapartners/, /Google Favicon/,
+            /Google Page Speed Insights/, /Chrome-Lighthouse/,  // GOOGLE PAGESPEED AND LIGHTHOUSE
+            /FeedFetcher/, /Google-Read-Aloud/,
+            /DuplexWeb-Google/, /googleweblight/,
+            /bing/, /yandex/, /baidu/, /duckduck/, /yahoo/,        // OTHER ENGINES
+            /ecosia/, /ia_archiver/,
+            /facebook/, /instagram/, /pinterest/, /reddit/,       // SOCIAL MEDIA
+            /slack/, /twitter/, /whatsapp/, /youtube/,
+            /semrush/,                                         // OTHER
+        ].map((r) => r.source).join("|"), "i");               // BUILD REGEXP + "i" FLAG
+
+        return robots.test(navigator.userAgent);
+    }
+
+    checkForBots() {
+        if (this.detectRobot()) {
+            this.userConsent = this.getDefaultConsent();
+            this.saveConsent(true);
+            return true
+        }
+        return false
+    }
+
+    saveConsent(silent = false) {
+        this.userConsent.version = this.settings.version;
+        window.localStorage.removeItem(this.name);
+        window.localStorage.setItem(this.name, JSON.stringify(this.userConsent));
+        this.hideBannerAndOptions();
+
+        if (!silent) {
+            this.showMessage();
+        }
+
+        this.checkElementsWithRequiredConsent();
+        this.triggerCustomFunction();
+
+    }
+
+    triggerCustomFunction() {
+        if (this.settings.customFunction.length && typeof window[this.settings.customFunction] === "function") {
+            window[this.settings.customFunction]();
+        }
+    }
+
+    hideBannerAndOptions() {
+        this.elements.banner.wrapper.classList.remove("show-banner", "show-options");
+        document.body.classList.remove("has-privacywire-window-opened");
+        document.dispatchEvent(new CustomEvent('PrivacyWireBannerAndOptionsClosed'));
+    }
+
+    showBanner() {
+        this.elements.banner.wrapper.classList.add("show-banner");
+        document.body.classList.add("has-privacywire-window-opened");
+        document.dispatchEvent(new CustomEvent('PrivacyWireBannerOpened'));
+    }
+
+    showOptions() {
+        this.elements.banner.wrapper.classList.remove("show-banner");
+        this.elements.banner.wrapper.classList.add("show-options");
+        document.body.classList.add("has-privacywire-window-opened");
+        document.dispatchEvent(new CustomEvent('PrivacyWireOptionsOpened'));
+    }
+
+    showMessage() {
+        this.elements.banner.wrapper.classList.add("show-message");
+        setTimeout(() => {
+            this.elements.banner.wrapper.classList.remove("show-message");
+        }, this.settings.messageTimeout);
+    }
+
+    checkElementsWithRequiredConsent() {
+
+        if (this.settings.consentByClass === false) {
+            this.elements.elementsWithRequiredConsent = document.querySelectorAll("[data-category]");
+        }
+
+        this.cleanOldConsentWindows();
+        if (this.elements.elementsWithRequiredConsent) {
+            const pw = this;
+            Array.from(this.elements.elementsWithRequiredConsent).forEach(function (el) {
+                const category = el.dataset.category;
+                if (!category) {
+                    return
+                }
+                let allowed = false;
+
+                for (const consentCategory in pw.userConsent.cookieGroups) {
+                    if (consentCategory === category && pw.userConsent.cookieGroups[consentCategory] === true) {
+                        allowed = true;
+                        break
+                    }
+                }
+                if (!allowed) {
+                    pw.updateDisallowedElement(el);
+                    return
+                }
+                pw.updateAllowedElement(el);
+            });
+        }
+    }
+
+    cleanOldConsentWindows() {
+        if (this.elements.consentWindows) {
+            Array.from(this.elements.consentWindows).forEach((el) => {
+                const {dataset} = el;
+                const category = dataset.disallowedConsentCategory;
+                let allowed = false;
+
+                for (const consentCategory in this.userConsent.cookieGroups) {
+                    if (consentCategory === category && this.userConsent.cookieGroups[consentCategory] === true) {
+                        allowed = true;
+                        break
+                    }
+                }
+                if (allowed) {
+                    el.remove();
+                }
+            });
+        }
+    }
+
+    updateDisallowedElement(el) {
+        const {dataset} = el;
+        if (!dataset.askConsent || dataset.askConsentRendered === "1") {
+            return
+        }
+
+        const category = dataset.category;
+        const categoryLabel = this.settings.cookieGroups[category];
+
+        let newEl = document.createElement("div");
+        newEl.classList.add("privacywire-ask-consent", "consent-category-" + category);
+        newEl.dataset.disallowedConsentCategory = category;
+        newEl.innerHTML = this.elements.blueprint.innerHTML.formatUnicorn({
+            category: categoryLabel,
+            categoryname: category
+        });
+        if (dataset.askConsentMessage) {
+          newEl.querySelector('.privacywire-consent-message').textContent = dataset.askConsentMessage;
+        }
+        if (dataset.askConsentButtonLabel) {
+          newEl.querySelector('button').textContent = dataset.askConsentButtonLabel;
+        }
+        el.insertAdjacentElement('afterend', newEl);
+        el.dataset.askConsentRendered = "1";
+    }
+
+    updateAllowedElement(el) {
+        if (el.tagName.toLowerCase() === "script") {
+            this.updateAllowedElementScript(el);
+        } else {
+            this.updateAllowedElementOther(el);
+        }
+    }
+
+    updateAllowedElementScript(el) {
+        const {dataset} = el;
+
+        let newEl = document.createElement(el.tagName);
+        for (const key of Object.keys(dataset)) {
+            newEl.dataset[key] = el.dataset[key];
+        }
+        newEl.type = dataset.type;
+        if (dataset.src) {
+            newEl.src = dataset.src;
+        }
+        // textContent is more suitable as innerText may change the value, is limited, costly and slower 
+        // (like introduced <br> elements instead of new lines in inline scripts).
+        // More: https://stackoverflow.com/questions/35213147/difference-between-textcontent-vs-innertext
+        newEl.textContent = el.textContent;
+        if (el.id) { newEl.id = el.id;} // Do not create an empty ID attribute if no ID exist
+        newEl.defer = el.defer;
+        newEl.async = el.async;
+        newEl = this.removeUnusedAttributesFromElement(newEl);
+        el.insertAdjacentElement('afterend', newEl);
+        el.remove();
+    }
+
+    updateAllowedElementOther(el) {
+        const {dataset} = el;
+        el.type = dataset.type ?? 'text/javascript';
+
+        ['src', 'srcset', 'srcdoc'].forEach(k => {
+          if (dataset[k] !== undefined) {
+            el[k] = dataset[k];
+          } 
+        });
+        this.removeUnusedAttributesFromElement(el);
+    }
+
+    removeUnusedAttributesFromElement(el) {
+        el.removeAttribute("data-ask-consent");
+        el.removeAttribute("data-ask-consent-rendered");
+        el.removeAttribute("data-category");
+        el.removeAttribute("data-src");
+        el.removeAttribute("data-srcset");
+        el.removeAttribute("data-srcdoc");
+        el.removeAttribute("data-type");
+        el.classList.remove("require-consent");
+        return el
+    }
+
+    refresh() {
+        this.checkElementsWithRequiredConsent();
+        this.handleButtonHelper(this.elements.buttons.askForConsent, "handleButtonAskForConsent");
+    }
+
+    removeStoredConsent() {
+        if (!window.localStorage.getItem(this.name)) {
+            return;
+        }
+        window.localStorage.removeItem(this.name);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    window.PrivacyWire = new PrivacyWire(PrivacyWireSettings);
+});})();

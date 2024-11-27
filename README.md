@@ -37,8 +37,11 @@ class `require-consent` | optional (required if config option enabled) | If the 
 `data-category` | required | defines the assigned cookie group for this element | string
 `data-type` | optional (required for scripts) | replaces the type attribute after giving consent | string
 `data-src` | optional (required for external scripts, images or iframes) | replaces the src attribute after giving consent | string
-`data-srset` | optional | replaces the srcset attribute for images after giving consent | string
+`data-srcset` | optional | replaces the srcset attribute for images after giving consent | string
+`data-srcdoc` | optional | replaces the srcdoc attribute for iframes after giving consent | string
 `data-ask-consent`| optional | Replace element with Opt-In-Element | bool `0/1`
+`data-ask-consent-message`| optional | Replace configured message with this text for this instance | string
+`data-ask-consent-button-label`| optional | Replace configured message with this text for this instance | string
 
 For script tags it is required to add `type="text/plain"`, otherwise the script executes directly.
 
