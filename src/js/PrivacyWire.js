@@ -424,6 +424,7 @@ class PrivacyWire {
         el.type = dataset.type ?? 'text/javascript'
         el.src = dataset.src
         el.srcset = dataset.srcset
+        el.poster = dataset.poster
         this.removeUnusedAttributesFromElement(el)
     }
 
@@ -433,6 +434,7 @@ class PrivacyWire {
         el.removeAttribute("data-category")
         el.removeAttribute("data-src")
         el.removeAttribute("data-srcset")
+        el.removeAttribute("data-poster")
         el.removeAttribute("data-type")
         el.classList.remove("require-consent")
         return el
